@@ -42,9 +42,6 @@
           };
       });
 
-      # Enter a development shell with `nix develop`.
-      # The hooks will be installed automatically.
-      # Or run pre-commit manually with `nix develop -c pre-commit run --all-files`
       devShells = forEachSystem (system: {
         default =
           let
@@ -70,7 +67,6 @@
           };
       });
 
-      # Run the hooks with `nix fmt`.
       formatter = forEachSystem (
         system:
         let
@@ -84,20 +80,16 @@
         pkgs.writeShellScriptBin "pre-commit-run" script
       );
 
-      # Run the hooks in a sandbox with `nix flake check`.
-      # Read-only filesystem and no internet access.
       checks = forEachSystem (system: {
         pre-commit-check = inputs.git-hooks.lib.${system}.run {
           src = ./.;
           hooks = {
             nixfmt-rfc-style.enable = true;
-            #rustfmt.enable = true;
-            #clippy = {
-            #enable = true;
-            #packageOverrides.cargo = pkgs.cargo;
-            #packageOverrides.clippy = pkgs.clippy;
-            #settings.allFeatures = true;
-            #};
+            rustfmt.enable = true;
+            clippy = {
+              enable = true;
+              settings.allFeatures = true;
+            };
           };
         };
       });
