@@ -2,6 +2,8 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use uuid::Uuid;
 
+use crate::task::Status;
+
 pub mod task;
 
 #[derive(Parser, Debug, Clone)]
@@ -25,7 +27,7 @@ enum Command {
         uuid: Uuid,
     },
     /// list all saved todo list entries
-    List {},
+    List,
     /// remove an item
     Remove {
         /// uuid of task to set status
@@ -49,10 +51,14 @@ fn main() {
         Command::Add { description } => {
             tasklist.add(Task::new(description));
         }
-        Command::Complete { uuid } => {
-            // TODO
-            println!("{uuid}");
-        }
+        Command::Complete { uuid } => match tasklist.edit(uuid.clone(), Status::Complete) {
+            Ok(_) => {
+                println!("marked task as complete")
+            }
+            Err(e) => {
+                println!("{e}")
+            }
+        },
         Command::List {} => {
             println!("{tasklist:#?}");
         }

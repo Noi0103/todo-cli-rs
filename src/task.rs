@@ -25,6 +25,10 @@ impl Task {
             completion_status: Status::Pending,
         }
     }
+
+    pub fn set_status(&mut self, status: Status) {
+        self.completion_status = status;
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -41,18 +45,32 @@ impl Tasklist {
     pub fn new() -> Tasklist {
         Tasklist { tasks: vec![] }
     }
+
     pub fn add(&mut self, task: Task) {
         self.tasks.push(task);
     }
+
+    pub fn edit(&mut self, uuid: Uuid, status: Status) -> std::result::Result<(), &str> {
+        for e in &mut self.tasks {
+            if e.uuid == uuid {
+                e.completion_status = status;
+                return Ok(());
+            }
+        }
+        Err("uuid unknown")
+    }
+
     pub fn remove(&mut self, uuid: &Uuid) {
         self.tasks.retain(|task| task.uuid != *uuid)
     }
+
     pub fn save(&self, savefile: &PathBuf) -> Result<(), std::io::Error> {
         let json: String = serde_json::to_string(self).expect("parse response json to string");
         std::fs::write(savefile, json)?;
         println!("saved");
         Ok(())
     }
+
     pub fn load(&mut self, savefile: &PathBuf) -> Result<(), std::io::Error> {
         let data: Vec<u8> = std::fs::read(savefile)?;
         let parsed: Tasklist =
