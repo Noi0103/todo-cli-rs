@@ -1,5 +1,5 @@
 {
-  description = "An example project";
+  description = "An example project with a todo list application in rust.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/25.05";
@@ -67,31 +67,31 @@
           };
       });
 
-      formatter = forEachSystem (
+      checks = forEachSystem (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          config = self.checks.${system}.pre-commit-check.config;
-          inherit (config) package configFile;
-          script = ''
-            ${package}/bin/pre-commit run --all-files --config ${configFile}
-          '';
         in
-        pkgs.writeShellScriptBin "pre-commit-run" script
-      );
-
-      checks = forEachSystem (system: {
-        pre-commit-check = inputs.git-hooks.lib.${system}.run {
-          src = ./.;
-          hooks = {
-            nixfmt-rfc-style.enable = true;
-            rustfmt.enable = true;
-            clippy = {
-              enable = true;
-              settings.allFeatures = true;
+        {
+          pre-commit-check = inputs.git-hooks.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              nixfmt-rfc-style.enable = true;
+              rustfmt.enable = true;
+              clippy = {
+                enable = true;
+                settings.allFeatures = true;
+                packageOverrides.cargo = pkgs.cargo;
+                packageOverrides.clippy = pkgs.clippy;
+              };
+            };
+            settings = {
+              rust.check.cargoDeps = pkgs.rustPlatform.importCargoLock {
+                lockFile = ./Cargo.lock;
+              };
             };
           };
-        };
-      });
+        }
+      );
     };
 }
