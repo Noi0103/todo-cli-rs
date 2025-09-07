@@ -1,6 +1,16 @@
 # todo-cli-rs
+A simple todo application written in rust and packaged with nix. 
+
+# Table of contents
+- [overview](#overview)
+- [using nix commands](#using-nix-commands)
+  - [run](#run)  
+  - [build](#build)
+  - [developer shell](#developer-shell)
+
+# overview
 ```
-Usage: todo-cli-rs [OPTIONS] <COMMAND>
+Usage: todo-cli-rs <COMMAND>
 
 Commands:
   add       add a todo list entry
@@ -14,26 +24,33 @@ Options:
   -V, --version  Print version
 ```
 
+# using nix commands
+## run
+run the application ad-hoc with nix:
+```
+nix run github:Noi0103/todo-cli-rs\#default -- help
+```
 
 ## build
 using nix _and_ having flakes feature enabled
-```sh
+```
 nix build
 ```
 
 using default nix
-```sh
+```
 nix build --option experimental-features flakes --extra-experimental-features nix-command
 ```
 
 ## developer shell
 using nix _and_ having flakes feature enabled
-```sh
+```
 nix develop
 ```
 
 using default nix
-```sh
+```
 nix develop --option experimental-features flakes --extra-experimental-features nix-command
 ```
-(Note: direnv)
+
+(Note: see direnv for QoL with devshells)

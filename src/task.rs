@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::PathBuf;
 
 use chrono::{DateTime, Local};
@@ -9,12 +10,31 @@ pub enum Status {
     Complete,
     Pending,
 }
+impl fmt::Display for Status {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let tmp = match self {
+            Status::Complete => "Complete",
+            Status::Pending => "Pending",
+        };
+        write!(f, "{tmp}")
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
     pub uuid: Uuid,
     pub description: String,
     pub creation_time: DateTime<Local>,
     pub completion_status: Status,
+}
+impl fmt::Display for Task {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Task: \n uuid: {}\n description: {}\n creation_time: {}\n completion_status: {}\n",
+            self.uuid, self.description, self.creation_time, self.completion_status
+        )
+    }
 }
 impl Task {
     pub fn new(description: &str) -> Task {
@@ -38,6 +58,15 @@ pub struct Tasklist {
 impl Default for Tasklist {
     fn default() -> Self {
         Self::new()
+    }
+}
+impl fmt::Display for Tasklist {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut tmp: String = String::from(">>> all of your tasks <<<");
+        for e in &self.tasks {
+            tmp = format!("{tmp}\n{e}");
+        }
+        write!(f, "{tmp}")
     }
 }
 
@@ -67,7 +96,6 @@ impl Tasklist {
     pub fn save(&self, savefile: &PathBuf) -> Result<(), std::io::Error> {
         let json: String = serde_json::to_string(self).expect("parse response json to string");
         std::fs::write(savefile, json)?;
-        println!("saved");
         Ok(())
     }
 
@@ -76,17 +104,13 @@ impl Tasklist {
         let parsed: Tasklist =
             serde_json::from_slice(&data).expect("savefile corrupted; can not be parsed");
         *self = parsed.clone();
-        println!("loaded",);
         Ok(())
     }
-
-    // TODO formatter for listing all todos
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Local;
 
     #[test]
     fn add_one_task() {

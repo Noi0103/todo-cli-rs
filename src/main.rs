@@ -1,5 +1,9 @@
-use clap::{Parser, Subcommand};
+use std::fs;
 use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
+use home::home_dir;
+use task::{Task, Tasklist};
 use uuid::Uuid;
 
 use crate::task::Status;
@@ -12,18 +16,17 @@ pub struct Args {
     #[command(subcommand)]
     command: Command,
 }
+
 #[derive(Subcommand, Debug, Clone)]
 enum Command {
     /// add a todo list entry
     Add {
         /// description of the task to add
-        #[arg(short, long)]
         description: String,
     },
     /// mark an item as completed
     Complete {
         /// uuid of task to set status
-        #[arg(short, long)]
         uuid: Uuid,
     },
     /// list all saved todo list entries
@@ -31,27 +34,44 @@ enum Command {
     /// remove an item
     Remove {
         /// uuid of task to set status
-        #[arg(short, long)]
         uuid: Uuid,
     },
 }
 
 fn main() {
-    use task::{Task, Tasklist};
+    let mut savefile: PathBuf;
 
-    // hard coded arg
-    let savefile: PathBuf = PathBuf::from("./save.json");
+    match home_dir() {
+        Some(path) => {
+            savefile = path;
+            savefile.push("savefile-todo.json");
+        }
+        None => {
+            println!("Impossible to get your home dir!");
+            return;
+        }
+    }
 
     let args = Args::parse();
 
     let mut tasklist = Tasklist::default();
-    let _ = tasklist.load(&savefile);
+
+    if fs::exists(&savefile).expect("can not check if file exists") {
+        match tasklist.load(&savefile) {
+            Ok(_) => {
+                println!("(loaded from savefile)");
+            }
+            Err(e) => {
+                println!("{e}");
+            }
+        }
+    }
 
     match &args.command {
         Command::Add { description } => {
             tasklist.add(Task::new(description));
         }
-        Command::Complete { uuid } => match tasklist.edit(uuid.clone(), Status::Complete) {
+        Command::Complete { uuid } => match tasklist.edit(*uuid, Status::Complete) {
             Ok(_) => {
                 println!("marked task as complete")
             }
@@ -59,13 +79,20 @@ fn main() {
                 println!("{e}")
             }
         },
-        Command::List {} => {
-            println!("{tasklist:#?}");
+        Command::List => {
+            println!("{tasklist}");
         }
         Command::Remove { uuid } => {
             tasklist.remove(uuid);
         }
     }
 
-    let _ = tasklist.save(&savefile);
+    match tasklist.save(&savefile) {
+        Ok(_) => {
+            println!("(saved to savefile)");
+        }
+        Err(e) => {
+            println!("{e}");
+        }
+    }
 }
