@@ -30,16 +30,17 @@ run the application ad-hoc with nix:
 ```
 nix run github:Noi0103/todo-cli-rs\#default -- help
 ```
+```
+nix run --extra-experimental-features nix-command --extra-experimental-features flakes github:Noi0103/todo-cli-rs\#default -- help
+```
 
 ## build
 using nix _and_ having flakes feature enabled
 ```
 nix build
 ```
-
-using default nix
 ```
-nix build --option experimental-features flakes --extra-experimental-features nix-command
+nix build --extra-experimental-features nix-command --extra-experimental-features flakes
 ```
 
 ## developer shell
@@ -47,10 +48,9 @@ using nix _and_ having flakes feature enabled
 ```
 nix develop
 ```
-
-using default nix
 ```
 nix develop --option experimental-features flakes --extra-experimental-features nix-command
 ```
-
 (Note: see direnv for QoL with devshells)
+
+inside the development shell use cargo commands (instead of nix) to avoid fully rebuilding on each change `cargo run -- help` (see cargo language book or some similar resource)
